@@ -9,7 +9,7 @@ int switchState(int state, int n, {int size = 3}) {
     mask |= 1 << (n + 1);
   }
 
-  if (n ~/ size != 0) {
+  if (n >= size) {
     mask |= 1 << (n - size);
   }
 
@@ -27,21 +27,22 @@ List<List<int>> minSwitches({int size = 3}) {
 
   while (dp.skip(1).any((innerList) => innerList.isEmpty)) {
     for (int state = 0; state < dpLength; state++) {
+      int lastLen = 0;
+      if (state == 0) {
+        lastLen = 0;
+      } else if (dp[state].isNotEmpty) {
+        lastLen = dp[state].length + 1;
+      } else {
+        continue;
+      }
       for (int i = 0; i < gridLength; i++) {
         int newState = switchState(state, i, size: size);
         int newLen = double.maxFinite.toInt();
-        int lastLen = double.maxFinite.toInt();
-        if (state == 0) {
-          lastLen = 0;
-        } else if (dp[state].isNotEmpty) {
-          lastLen = dp[state].length + 1;
-        }
         if (newState == 0) {
           newLen = 0;
         } else if (dp[newState].isNotEmpty) {
           newLen = dp[newState].length;
         }
-
         if (lastLen < newLen) {
           dp[newState] = [...dp[state], i];
         }

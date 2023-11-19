@@ -1,32 +1,53 @@
 import 'package:flutter/material.dart';
 import 'calculation.dart';
 import 'result_page.dart';
+import 'about_page.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // 在其他平台上不调整窗口大小
-    return MaterialApp(
-        home: Scaffold(
-            appBar: AppBar(
-              title: const Text("开关阵列计算器"),
-            ),
-            body: const MyHomePage()));
+    return const MaterialApp(
+      home: MyHomePage(),
+    );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("开关阵列计算器"),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AboutPage()),
+                );
+              },
+            ),
+          ],
+        ),
+        body: const CalculatePage());
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class CalculatePage extends StatefulWidget {
+  const CalculatePage({super.key});
+
+  @override
+  _CalculatePageState createState() => _CalculatePageState();
+}
+
+class _CalculatePageState extends State<CalculatePage> {
   List<int> pressedIndices = [];
   String result = "Result will be displayed here";
   TextEditingController gridSizeController = TextEditingController();
@@ -39,27 +60,36 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         const SizedBox(height: 30),
         // Input for grid size
-        // Padding(
-        //   padding: const EdgeInsets.all(8.0),
-        //   child: Row(
-        //     mainAxisAlignment: MainAxisAlignment.center,
-        //     children: [
-        //       Text("Grid Size: "),
-        //       SizedBox(
-        //         width: 50,
-        //         child: TextField(
-        //           controller: gridSizeController,
-        //           keyboardType: TextInputType.number,
-        //           onChanged: (value) {
-        //             setState(() {
-        //               gridSize = int.tryParse(value) ?? 3;
-        //             });
-        //           },
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Grid Size: ",
+                style: TextStyle(fontSize: 24),
+              ),
+              DropdownButton<int>(
+                value: gridSize,
+                onChanged: (value) {
+                  setState(() {
+                    gridSize = value ?? 3;
+                  });
+                },
+                items: List.generate(
+                  3,
+                  (index) => DropdownMenuItem<int>(
+                    value: index + 1,
+                    child: SizedBox(
+                      width: 50, // 设置宽度
+                      child: Text((index + 1).toString()),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         // Custom Grid Buttons
         GridView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -99,25 +129,34 @@ class _MyHomePageState extends State<MyHomePage> {
                   fixedSize: const Size(200.0, 50.0), // 指定按钮的宽度和高度
                 ),
                 onPressed: () {
-                  // Call the Calculate function from calculation.dart
-                  List<int> calculatedResult =
-                      calculate(gridSize, pressedIndices);
-
-                  // Update the result based on the calculated result
-                  setState(() {
-                    result = calculatedResult.join(" ");
-                  });
-
-                  // Navigate to the ResultPage with the calculated result
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ResultPage(
-                        stepIndices: calculatedResult,
-                        gridSize: gridSize, // 传递正确的 gridSize
+                  if (pressedIndices.isEmpty) {
+                    // 如果 pressedIndices 为空，显示提示
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('未选择开关'),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    // Call the Calculate function from calculation.dart
+                    List<int> calculatedResult =
+                        calculate(gridSize, pressedIndices);
+
+                    // Update the result based on the calculated result
+                    setState(() {
+                      result = calculatedResult.join(" ");
+                    });
+
+                    // Navigate to the ResultPage with the calculated result
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ResultPage(
+                          stepIndices: calculatedResult,
+                          gridSize: gridSize, // 传递正确的 gridSize
+                        ),
+                      ),
+                    );
+                  }
                 },
                 child: const Text("Calculate", style: TextStyle(fontSize: 24)),
               ),
